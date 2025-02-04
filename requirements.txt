@@ -7,5 +7,5 @@ watchdog
 requests
 openpyxl
 plotly
-python-dotenv
 bcrypt
+python-dotenv

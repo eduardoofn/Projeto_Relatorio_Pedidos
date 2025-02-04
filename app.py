@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import hashlib
+import pyodbc
 from db_connection import get_db_connection, execute_query
 
 
@@ -266,6 +267,7 @@ if not st.session_state.authenticated:
         email = st.text_input("Usuário", key="login_email", placeholder="Digite seu usuário")
         password = st.text_input("Senha", type="password", key="login_password", placeholder="Digite sua senha")
 
+
         if st.button("LOGIN", key="login-button"):
             user = check_login(email, password)
             if user:
@@ -276,6 +278,13 @@ if not st.session_state.authenticated:
                 st.rerun()
             else:
                 st.error("Credenciais inválidas!")
+
+        if st.button("Testar Conexão"):
+            conn = get_db_connection()
+            if conn:
+                st.success("✅ Conexão bem-sucedida com o banco de dados!")
+            else:
+                st.error("❌ Erro ao conectar ao banco de dados. Verifique logs.")
 
 else:
     st.sidebar.write(f"Bem-vindo, {st.session_state.user_name}!")
