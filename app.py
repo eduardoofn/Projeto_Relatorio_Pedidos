@@ -279,13 +279,6 @@ if not st.session_state.authenticated:
             else:
                 st.error("Credenciais inválidas!")
 
-        if st.button("Testar Conexão"):
-            conn = get_db_connection()
-            if conn:
-                st.success("✅ Conexão bem-sucedida com o banco de dados!")
-            else:
-                st.error("❌ Erro ao conectar ao banco de dados. Verifique logs.")
-
 else:
     st.sidebar.write(f"Bem-vindo, {st.session_state.user_name}!")
     if st.session_state.is_admin:
