@@ -1,9 +1,7 @@
 import pyodbc
 import os
-import hashlib
 from dotenv import load_dotenv
 
-# Carregar variáveis do .env
 load_dotenv()
 
 def get_db_connection():

@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import pyodbc
 import hashlib
 from db_connection import get_db_connection, execute_query
 
@@ -40,7 +39,7 @@ def get_users():
             return df
     except Exception as e:
         st.error(f"Erro ao buscar usuários: {e}")
-        return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
+        return pd.DataFrame()  
     
 def delete_user(user_id):
     try:
@@ -52,7 +51,7 @@ def delete_user(user_id):
             conn.commit()
             conn.close()
             st.success("Usuário deletado com sucesso!")
-            st.rerun()  # Atualiza a página automaticamente
+            st.rerun()  
     except Exception as e:
         st.error(f"Erro ao deletar usuário: {e}")
 
@@ -62,30 +61,21 @@ def upload_data(file):
     try:
         df = pd.read_excel(file, engine='openpyxl')
 
-        # Exibir os primeiros dados para depuração
         st.write("Pré-visualização dos dados carregados:")
         st.write(df.head())
 
-        # Preencher valores NaN antes da conversão numérica
-        df["PEDIDO"] = df["PEDIDO"].fillna(0).astype("int64")  # Evita erro ao converter para inteiro
+        df["PEDIDO"] = df["PEDIDO"].fillna(0).astype("int64")  
         df["ITEM DO PEDIDO"] = df["ITEM DO PEDIDO"].fillna(0).astype("int64")
-        df["CNPJ"] = df["CNPJ"].astype(str)  # Convertendo para string para evitar erros de precisão
+        df["CNPJ"] = df["CNPJ"].astype(str)  
 
-        # Certificar que os valores estão no formato correto para DECIMAL(18,2)
-        df["VALOR"] = df["VALOR"].fillna(0).astype(float).round(2)  # Já está como float, apenas arredondamos
+        df["VALOR"] = df["VALOR"].fillna(0).astype(float).round(2)  
 
-        # Garantir que colunas de string não tenham valores inválidos
         str_cols = ["COD SAP", "RAZÃO SOCIAL", "CANAL", "CENTRO", "REFERÊNCIA", "STATUS"]
         for col in str_cols:
             df[col] = df[col].astype(str).replace("nan", "").replace("None", "").fillna("")
 
         df["data_importacao"] = pd.Timestamp.now()
 
-        # Exibir os dados após tratamento
-        #st.write("Dados tratados antes da inserção:")
-        #st.write(df.head())
-
-        # Conectar ao banco de dados
         conn = get_db_connection()
         if conn:
             cursor = conn.cursor()
@@ -112,7 +102,6 @@ def upload_data(file):
 
 def delete_data(start_date, end_date):
     try:
-        # Converter datas para o formato correto para SQL Server (YYYY-MM-DD)
         start_date_sql = start_date.strftime("%Y-%m-%d")
         end_date_sql = end_date.strftime("%Y-%m-%d")
 
@@ -124,7 +113,7 @@ def delete_data(start_date, end_date):
                 WHERE CONVERT(DATE, data_importacao, 104) BETWEEN '{start_date_sql}' AND '{end_date_sql}'
             """
             cursor.execute(query)
-            rows_affected = cursor.rowcount  # Verifica quantas linhas foram afetadas
+            rows_affected = cursor.rowcount  
             conn.commit()
             conn.close()
 
@@ -158,16 +147,12 @@ if "authenticated" not in st.session_state:
 
 if "logout" in st.session_state and st.session_state["logout"]:
     for key in list(st.session_state.keys()):
-        del st.session_state[key]  # Remove todas as chaves da sessão
-    st.rerun()  # Atualiza a página para refletir o logout
-
+        del st.session_state[key]  
+    st.rerun()  
 
 def logout():
-    st.session_state["logout"] = True  # Define a flag para indicar que o logout foi acionado
+    st.session_state["logout"] = True  
 
-
-
-# Inicializando sessão de autenticação, se ainda não existir
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -275,14 +260,12 @@ if not st.session_state.authenticated:
     </style>
     """, unsafe_allow_html=True)
 
-    # Container do login
     with st.container():
         st.markdown('<div class="login-title">LOGIN</div>', unsafe_allow_html=True)
 
         email = st.text_input("Usuário", key="login_email", placeholder="Digite seu usuário")
         password = st.text_input("Senha", type="password", key="login_password", placeholder="Digite sua senha")
 
-        # Botão de login estilizado
         if st.button("LOGIN", key="login-button"):
             user = check_login(email, password)
             if user:
@@ -293,10 +276,6 @@ if not st.session_state.authenticated:
                 st.rerun()
             else:
                 st.error("Credenciais inválidas!")
-
-
-
-
 
 else:
     st.sidebar.write(f"Bem-vindo, {st.session_state.user_name}!")
@@ -314,7 +293,6 @@ else:
             if st.button("Criar Usuário"):
                 create_user(name, email, password)
 
-            # Garantir que users_df sempre exista
             users_df = get_users()
 
             st.subheader("Usuários Cadastrados")
@@ -322,18 +300,14 @@ else:
             if not users_df.empty:
                 st.write(users_df)
 
-                # Opção para excluir um usuário
                 user_to_delete = st.selectbox("Selecione um usuário para deletar:", users_df["id"].astype(str) + " - " + users_df["nome"])
                 
                 if st.button("Excluir Usuário"):
-                    user_id = user_to_delete.split(" - ")[0]  # Pegando apenas o ID do usuário
+                    user_id = user_to_delete.split(" - ")[0] 
                     delete_user(user_id)
             else:
                 st.info("Nenhum usuário cadastrado ainda.")
 
-
-
-        
         elif option == "Base de Dados":
             st.subheader("Importar Arquivo de Dados")
             uploaded_file = st.file_uploader("Escolha um arquivo Excel", type=["xlsx"])
@@ -345,13 +319,11 @@ else:
 
             st.subheader("Excluir Registros por Período")
 
-            # Streamlit já retorna um objeto date, então não precisa converter antes de formatar
             start_date = st.date_input("Data Inicial")
             end_date = st.date_input("Data Final")
 
             if st.button("Excluir Registros"):
                 delete_data(start_date, end_date)
-        
         
         
         elif option == "Configurar Power BI":
@@ -365,11 +337,6 @@ else:
                 else:
                     set_powerbi_url(new_url)
                     st.success("Link atualizado com sucesso!")
-
-        #elif option == "Excluir Dados":
-            
-
-
     else:
             st.markdown(
                 """<style>
