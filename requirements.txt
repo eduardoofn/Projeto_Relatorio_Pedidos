@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+pyodbc
+sqlalchemy
+watchdog
+requests
+openpyxl
+plotly
+python-dotenv
+bcrypt
